@@ -32,26 +32,24 @@
       update_cache: yes
     vars:
       packages:
-      - docker-ce=5:19.03.14~3-0~ubuntu-xenial
       - docker-ce-cli=5:19.03.14~3-0~ubuntu-xenial
-      - containerd.io
     notify:
       - docker status
 
-  - name: Create the systemd docker options configuration file
-    template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
+  #- name: Create the systemd docker options configuration file
+  #  template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
 
-  - name: Systemd reread configs and restart
-    ansible.builtin.systemd:
-      daemon_reload: yes
+  #- name: Systemd reread configs and restart
+  #  ansible.builtin.systemd:
+  #    daemon_reload: yes
 
-  - name: Restart docker
-    service:
-      name: docker
-      daemon_reload: yes
-      state: restarted
+  #- name: Restart docker
+  #  service:
+  #    name: docker
+  #    daemon_reload: yes
+  #    state: restarted
 
-  - meta: flush_handlers
+  #- meta: flush_handlers
 
   - name: Start Docker service
     service:

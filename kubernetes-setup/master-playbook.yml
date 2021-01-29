@@ -32,11 +32,15 @@
       update_cache: yes
     vars:
       packages:
-      - docker-ce=5:19.03.14~3-0~ubuntu-xenial
       - docker-ce-cli=5:19.03.14~3-0~ubuntu-xenial
-      - containerd.io
+      - docker-ce=5:19.03.14~3-0~ubuntu-xenial
     notify:
       - docker status
+
+  - name: Ensure group docker exists
+    ansible.builtin.group:
+      name: docker
+      state: present
 
   - name: Add vagrant user to docker group
     user:
@@ -45,7 +49,6 @@
 
   - name: Create the systemd docker options configuration file
     template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
-
 
   - name: Systemd reread configs and restart
     ansible.builtin.systemd:
@@ -142,6 +145,9 @@
   - name: Copy join command to local file
     become: false
     local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+
+  - name: Install Kata Containers
+    command: snap install kata-containers --classic --candidate
 
   handlers:
     - name: docker status
