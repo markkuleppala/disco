@@ -6,7 +6,7 @@ Based on https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-an
 
 Run the system with `vagrant up`and tear down with `vagrant destroy -f`.
 
-The script creates k8s-master (192.168.10.50) and two worker nodes (.51 and .52).
+The script creates k8s-master (192.168.10.50) and two worker nodes (.51 and .52). Username and password for SSH is vagrant:vagrant.
 
 Current errors at k8s-master `kubeadm init` phase. Errors:
 vagrant@k8s-master:~$ systemctl status kubelet
