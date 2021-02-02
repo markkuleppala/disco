@@ -222,7 +222,21 @@
     get_url:
       url: https://raw.githubusercontent.com/markkuleppala/disco/main/11-crio-ipv4-bridge.conf
       dest: /etc/cni/net.d/11-crio-ipv4-bridge.conf
-      mode: '0755'
+      owner: vagrant
+      group: vagrant
+
+  - name: Create CNI plugin directory
+    ansible.builtin.file:
+      path: /opt/cni/bin
+      owner: vagrant
+      group: vagrant
+
+  - name: Copy CNI plugins
+    ansible.builtin.shell: |
+      cp bin/* /opt/cni/bin/
+      chown -R vagrant:vagrant /opt/cni/bin/
+    args:
+      chdir: plugins/
 
   - name: Configure node ip
     lineinfile:
@@ -237,7 +251,7 @@
       state: restarted
 
   - name: Initialize the Kubernetes cluster using kubeadm
-    command: kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10" --node-name="k8s-master" --pod-network-cidr=192.168.0.0/16 --cri-socket unix:///var/run/crio/crio.sock
+    command: kubeadm init --apiserver-advertise-address=192.168.50.10 --apiserver-cert-extra-sans=192.168.50.10 --node-name="k8s-master" --pod-network-cidr=192.168.0.0/16 --cri-socket unix:///var/run/crio/crio.sock
 
   - name: Create a directory if it does not exist
     ansible.builtin.file:
