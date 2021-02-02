@@ -36,6 +36,7 @@ Feb 02 18:04:05 k8s-master kubelet[41536]: E0202 18:04:05.815392   41536 kubelet
 `
 
 `
+journalctl -xeu kubelet
 Feb 02 18:06:46 k8s-master kubelet[41536]: E0202 18:06:46.552365   41536 kubelet.go:2243] node "k8s-master" not found
 Feb 02 18:06:46 k8s-master kubelet[41536]: E0202 18:06:46.592753   41536 remote_runtime.go:116] RunPodSandbox from runtime service failed: rpc error: code = Unknown desc = cri-o configured with systemd cgroup manager, but did not receive slice as parent: /kubepods/burstable/po>
 Feb 02 18:06:46 k8s-master kubelet[41536]: E0202 18:06:46.592791   41536 kuberuntime_sandbox.go:70] CreatePodSandbox for pod "kube-scheduler-k8s-master_kube-system(69cd289b4ed80ced4f95a59ff60fa102)" failed: rpc error: code = Unknown desc = cri-o configured with systemd cgroup >
