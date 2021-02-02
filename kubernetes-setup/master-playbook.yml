@@ -142,12 +142,35 @@
     ansible.builtin.shell: |
       make BUILDTAGS=""
       make install
-    #  make install.config
     args:
       chdir: cri-o/
       #MAJOR=`kubectl version --output json | jq ".clientVersion.major | tonumber"`
       #MINOR=`kubectl version --output json | jq ".clientVersion.minor | tonumber"`
       #git checkout release-$MAJOR.$MINOR
+
+  - name: Get conmon
+    git:
+      repo: https://github.com/containers/conmon.git
+      dest: $HOME/conmon
+    become: false
+
+  - name: Install conmon
+    ansible.builtin.shell: |
+      make
+      make install
+    args:
+      chdir: conmon/
+
+  - name: Install CRI-O config
+    ansible.builtin.shell: make install.config
+    args:
+      chdir: cri-o/
+
+  - name: Get registries conf
+    get_url:
+      url: https://raw.githubusercontent.com/markkuleppala/disco/main/registries.conf
+      dest: /etc/containers/registries.conf
+      mode: '0755'
 
   - name: Install Kata Containers
     command: snap install kata-containers --classic --candidate
@@ -170,6 +193,15 @@
   - name: Start CRI-O service
     command: systemctl start crio
 
+
+
+
+  - name: Get CNI conf
+    get_url:
+      url: https://raw.githubusercontent.com/markkuleppala/disco/main/11-crio-ipv4-bridge.conf
+      dest: /etc/cni/cni.d/11-crio-ipv4-bridge.conf
+      mode: '0755'
+
   - name: Configure node ip
     lineinfile:
       path: /etc/default/kubelet
@@ -183,7 +215,7 @@
       state: restarted
 
   - name: Initialize the Kubernetes cluster using kubeadm
-    command: kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10" --node-name k8s-master --pod-network-cidr=192.168.0.0/16 --cri-socket unix:///var/run/crio/crio.sock
+    command: kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10" --node-name="k8s-master" --pod-network-cidr=192.168.0.0/16 --cri-socket unix:///var/run/crio/crio.sock
 
   - name: Create a directory if it does not exist
     ansible.builtin.file:
