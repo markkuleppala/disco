@@ -18,6 +18,8 @@
       - gcc
       - conmon
       - jq
+      - pkg-config
+      - glib-2.0
 
   - name: Install go
     command: snap install go --classic
