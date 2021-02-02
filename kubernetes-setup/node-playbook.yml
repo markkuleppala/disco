@@ -14,6 +14,28 @@
       - curl
       - gnupg-agent
       - software-properties-common
+      - make
+      - gcc
+      - conmon
+      - jq
+
+  - name: Install go
+    command: snap install go --classic
+
+  - name: Create a symbolic link for conmon
+    ansible.builtin.file:
+      src: /usr/libexec/podman/conmon
+      dest: /usr/bin/conmon
+      owner: vagrant
+      group: vagrant
+      state: link
+
+  - name: Add Kubic repository
+    command: |
+      sh -c "echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
+      wget -nv https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_20.04/Release.key -O Release.key
+      apt-key add - < Release.key
+      apt-get update -qq
 
   - name: Add an apt signing key for Docker
     apt_key:
@@ -33,23 +55,30 @@
     vars:
       packages:
       - docker-ce-cli=5:19.03.14~3-0~ubuntu-xenial
+      - docker-ce=5:19.03.14~3-0~ubuntu-xenial
+      - containers-common
     notify:
       - docker status
 
-  #- name: Create the systemd docker options configuration file
-  #  template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
+  - name: Ensure group docker exists
+    ansible.builtin.group:
+      name: docker
+      state: present
 
-  #- name: Systemd reread configs and restart
-  #  ansible.builtin.systemd:
-  #    daemon_reload: yes
+  - name: Create the systemd docker options configuration file
+    template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
 
-  #- name: Restart docker
-  #  service:
-  #    name: docker
-  #    daemon_reload: yes
-  #    state: restarted
+  - name: Systemd reread configs and restart
+    ansible.builtin.systemd:
+      daemon_reload: yes
 
-  #- meta: flush_handlers
+  - name: Restart docker
+    service:
+      name: docker
+      daemon_reload: yes
+      state: restarted
+
+  - meta: flush_handlers
 
   - name: Start Docker service
     service:
@@ -96,6 +125,46 @@
         - kubelet 
         - kubeadm 
         - kubectl
+
+
+  - name: Get CRI-O
+    git:
+      repo: https://github.com/cri-o/cri-o.git
+      dest: $HOME/cri-o
+      version: release-1.20
+    become: false
+
+  - name: Install CRI-O
+    ansible.builtin.shell: |
+      make BUILDTAGS=""
+      make install
+    #  make install.config
+    args:
+      chdir: cri-o/
+      #MAJOR=`kubectl version --output json | jq ".clientVersion.major | tonumber"`
+      #MINOR=`kubectl version --output json | jq ".clientVersion.minor | tonumber"`
+      #git checkout release-$MAJOR.$MINOR
+
+  - name: Install Kata Containers
+    command: snap install kata-containers --classic --candidate
+
+  - name: Get CRIO-O conf
+    get_url:
+      url: https://raw.githubusercontent.com/markkuleppala/disco/main/crio.conf
+      dest: /etc/crio/crio.conf
+      mode: '0755'
+
+  - name: Reload CRIO-O conf
+    command: systemctl restart crio
+  
+  - name: Reload daemon
+    command: systemctl daemon-reload
+
+  - name: Enable CRI-O service
+    command: systemctl enable crio
+
+  - name: Start CRI-O service
+    command: systemctl start crio
 
   - name: Configure node ip
     lineinfile:

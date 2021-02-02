@@ -17,6 +17,27 @@
       - make
       - gcc
       - conmon
+      - jq
+
+  - name: Install go
+    command: snap install go --classic
+
+  - name: Create a symbolic link for conmon
+    ansible.builtin.file:
+      src: /usr/libexec/podman/conmon
+      dest: /usr/bin/conmon
+      owner: vagrant
+      group: vagrant
+      state: link
+
+  - name: Adds apt signing key for Kubic
+    apt_key:
+      url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_20.04/Release.key
+      state: present
+
+  - name: Add Kubic repository
+    command: |
+      sh -c "echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
 
   - name: Add an apt signing key for Docker
     apt_key:
@@ -37,7 +58,7 @@
       packages:
       - docker-ce-cli=5:19.03.14~3-0~ubuntu-xenial
       - docker-ce=5:19.03.14~3-0~ubuntu-xenial
-
+      - containers-common
     notify:
       - docker status
 
@@ -107,31 +128,47 @@
         - kubeadm 
         - kubectl
 
-  - name: Install Kata Containers
-    command: snap install go --classic
+  #- name: Get CRI-O
+  #  command: git clone https://github.com/cri-o/cri-o.git
+
+  - name: Get CRI-O
+    git:
+      repo: https://github.com/cri-o/cri-o.git
+      dest: $HOME/cri-o
+      version: release-1.20
+    become: false
 
   - name: Install CRI-O
-    command: |
-    git clone
-    cd cri-o
-    MAJOR=`kubectl version --output json | jq ".clientVersion.major | tonumber"`
-    MINOR=`kubectl version --output json | jq ".clientVersion.minor | tonumber"`
-    git checkout release-$MAJOR.$MINOR
-    make BUILDTAGS=""
-    make install
-    make install.config
+    ansible.builtin.shell: |
+      make BUILDTAGS=""
+      make install
+    #  make install.config
+    args:
+      chdir: cri-o/
+      #MAJOR=`kubectl version --output json | jq ".clientVersion.major | tonumber"`
+      #MINOR=`kubectl version --output json | jq ".clientVersion.minor | tonumber"`
+      #git checkout release-$MAJOR.$MINOR
 
   - name: Install Kata Containers
     command: snap install kata-containers --classic --candidate
 
-  - name: Install CRIO-O conf
-    command: |
-    wget https://raw.githubusercontent.com/markkuleppala/disco/main/crio.conf
-    mv crio.conf /etc/crio/crio.conf
-    sudo systemctl restart crio
-    sudo systemctl daemon-reload
-    sudo systemctl enable crio
-    sudo systemctl start crio
+  - name: Get CRIO-O conf
+    get_url:
+      url: https://raw.githubusercontent.com/markkuleppala/disco/main/crio.conf
+      dest: /etc/crio/crio.conf
+      mode: '0755'
+
+  - name: Reload CRIO-O conf
+    command: systemctl restart crio
+  
+  - name: Reload daemon
+    command: systemctl daemon-reload
+
+  - name: Enable CRI-O service
+    command: systemctl enable crio
+
+  - name: Start CRI-O service
+    command: systemctl start crio
 
   - name: Configure node ip
     lineinfile:
