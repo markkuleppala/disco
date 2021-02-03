@@ -129,6 +129,13 @@
         - kubeadm 
         - kubectl
 
+  - name: Create kubelet directory
+    ansible.builtin.file:
+      path: /var/lib/kubelet
+      state: directory
+      owner: vagrant
+      group: vagrant
+
   - name: Get kubeadm conf
     get_url:
       url: https://raw.githubusercontent.com/markkuleppala/disco/main/kubeadm-flags.env
