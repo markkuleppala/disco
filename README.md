@@ -6,11 +6,11 @@ Based on https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-an
 
 Run the system with `vagrant up`and tear down with `vagrant destroy -f`.
 
-The script creates k8s-master (192.168.10.50) and two worker nodes (.51 and .52).
+The script creates k8s-master (192.168.10.50) and two worker nodes (.51 and .52). Username and password for SSH is vagrant:vagrant.
 
 Current errors at k8s-master `kubeadm init` phase. Errors:
 vagrant@k8s-master:~$ systemctl status kubelet
-`
+```
 ● kubelet.service - kubelet: The Kubernetes Node Agent
      Loaded: loaded (/lib/systemd/system/kubelet.service; enabled; vendor preset: enabled)
     Drop-In: /etc/systemd/system/kubelet.service.d
@@ -33,9 +33,9 @@ Feb 02 18:04:05 k8s-master kubelet[41536]: E0202 18:04:05.514608   41536 kubelet
 Feb 02 18:04:05 k8s-master kubelet[41536]: E0202 18:04:05.614979   41536 kubelet.go:2243] node "k8s-master" not found
 Feb 02 18:04:05 k8s-master kubelet[41536]: E0202 18:04:05.715214   41536 kubelet.go:2243] node "k8s-master" not found
 Feb 02 18:04:05 k8s-master kubelet[41536]: E0202 18:04:05.815392   41536 kubelet.go:2243] node "k8s-master" not found
-`
+```
 
-`
+```
 journalctl -xeu kubelet
 Feb 02 18:06:46 k8s-master kubelet[41536]: E0202 18:06:46.552365   41536 kubelet.go:2243] node "k8s-master" not found
 Feb 02 18:06:46 k8s-master kubelet[41536]: E0202 18:06:46.592753   41536 remote_runtime.go:116] RunPodSandbox from runtime service failed: rpc error: code = Unknown desc = cri-o configured with systemd cgroup manager, but did not receive slice as parent: /kubepods/burstable/po>
@@ -82,4 +82,5 @@ Feb 02 18:06:50 k8s-master kubelet[41536]: E0202 18:06:50.766638   41536 kubelet
 Feb 02 18:06:50 k8s-master kubelet[41536]: E0202 18:06:50.868105   41536 kubelet.go:2243] node "k8s-master" not found
 Feb 02 18:06:50 k8s-master kubelet[41536]: E0202 18:06:50.968225   41536 kubelet.go:2243] node "k8s-master" not found
 Feb 02 18:06:50 k8s-master kubelet[41536]: I0202 18:06:50.987725   41536 kubelet_node_status.go:71] Attempting to register node k8s-master
-Feb 02 18:06:50 k8s-master kubelet[41536]: E0202 18:06:50.987921   41536 kubelet_node_status.go:93] Unable to register node "k8s-master" with API server: Post "https://192.168.50.10:6443/api/v1/nodes": dial tcp 192.168.50.10:6443: connect: connection refused`
+Feb 02 18:06:50 k8s-master kubelet[41536]: E0202 18:06:50.987921   41536 kubelet_node_status.go:93] Unable to register node "k8s-master" with API server: Post "https://192.168.50.10:6443/api/v1/nodes": dial tcp 192.168.50.10:6443: connect: connection refused
+```
