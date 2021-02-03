@@ -129,8 +129,11 @@
         - kubeadm 
         - kubectl
 
-  #- name: Get CRI-O
-  #  command: git clone https://github.com/cri-o/cri-o.git
+  - name: Get kubeadm conf
+    get_url:
+      url: https://raw.githubusercontent.com/markkuleppala/disco/main/kubeadm-flags.env
+      dest: /var/lib/kubelet/kubeadm-flags.env
+      mode: '0755'
 
   - name: Get CRI-O
     git:
@@ -199,6 +202,9 @@
   
   - name: Reload daemon
     command: systemctl daemon-reload
+
+  - name: Restart kubelet
+    command: systemctl restart kubelet
 
   - name: Enable CRI-O service
     command: systemctl enable crio
