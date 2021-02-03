@@ -72,8 +72,8 @@
       name: vagrant
       group: docker
 
-  - name: Create the systemd docker options configuration file
-    template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
+  #- name: Create the systemd docker options configuration file
+  #  template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
 
   - name: Systemd reread configs and restart
     ansible.builtin.systemd:
@@ -205,7 +205,6 @@
   - name: Start CRI-O service
     command: systemctl start crio
 
-
   - name: Get CNI
     git:
       repo: https://github.com/containernetworking/plugins
@@ -251,7 +250,7 @@
       state: restarted
 
   - name: Initialize the Kubernetes cluster using kubeadm
-    command: kubeadm init --apiserver-advertise-address=192.168.50.10 --apiserver-cert-extra-sans=192.168.50.10 --node-name="k8s-master" --pod-network-cidr=192.168.0.0/16 --cri-socket unix:///var/run/crio/crio.sock
+    command: kubeadm init --apiserver-advertise-address=10.0.50.10 --apiserver-cert-extra-sans=10.0.50.10 --node-name="k8s-master" --pod-network-cidr=10.0.0.0/16 --cri-socket unix:///var/run/crio/crio.sock
 
   - name: Create a directory if it does not exist
     ansible.builtin.file:
