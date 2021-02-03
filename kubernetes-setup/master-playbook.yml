@@ -58,6 +58,7 @@
       packages:
       - docker-ce-cli=5:19.03.14~3-0~ubuntu-xenial
       - docker-ce=5:19.03.14~3-0~ubuntu-xenial
+      - containerd.io
       - containers-common
     notify:
       - docker status
@@ -184,8 +185,8 @@
       dest: /etc/containers/registries.conf
       mode: '0755'
 
-  - name: Install Kata Containers
-    command: snap install kata-containers --classic --candidate
+  #- name: Install Kata Containers
+  #  command: snap install kata-containers --classic --candidate
 
   - name: Get CRIO-O conf
     get_url:
