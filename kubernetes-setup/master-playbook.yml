@@ -185,8 +185,8 @@
       dest: /etc/containers/registries.conf
       mode: '0755'
 
-  #- name: Install Kata Containers
-  #  command: snap install kata-containers --classic --candidate
+  - name: Install Kata Containers
+    command: snap install kata-containers --classic --candidate
 
   - name: Get CRIO-O conf
     get_url:
