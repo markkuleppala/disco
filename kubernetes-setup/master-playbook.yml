@@ -58,7 +58,6 @@
       packages:
       - docker-ce-cli=5:19.03.14~3-0~ubuntu-xenial
       - docker-ce=5:19.03.14~3-0~ubuntu-xenial
-      - containerd.io
       - containers-common
     notify:
       - docker status
@@ -73,8 +72,8 @@
       name: vagrant
       group: docker
 
-  #- name: Create the systemd docker options configuration file
-  #  template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
+  - name: Create the systemd docker options configuration file
+    template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
 
   - name: Systemd reread configs and restart
     ansible.builtin.systemd:
@@ -131,9 +130,10 @@
 
   - name: Get kubeadm conf
     get_url:
-      url: https://raw.githubusercontent.com/markkuleppala/disco/main/10-kubeadm.conf
-      dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-      mode: '0755'
+      url: https://raw.githubusercontent.com/markkuleppala/disco/main/init.yaml
+      dest: /home/vagrant/init.yaml
+      owner: vagrant
+      group: vagrant
 
   - name: Get CRI-O
     git:
@@ -148,9 +148,6 @@
       make install
     args:
       chdir: cri-o/
-      #MAJOR=`kubectl version --output json | jq ".clientVersion.major | tonumber"`
-      #MINOR=`kubectl version --output json | jq ".clientVersion.minor | tonumber"`
-      #git checkout release-$MAJOR.$MINOR
 
   - name: Get conmon
     git:
@@ -257,7 +254,7 @@
       state: restarted
 
   - name: Initialize the Kubernetes cluster using kubeadm
-    command: kubeadm init --apiserver-advertise-address=10.0.50.10 --apiserver-cert-extra-sans=10.0.50.10 --node-name="k8s-master" --pod-network-cidr=10.0.0.0/16 --cri-socket unix:///var/run/crio/crio.sock
+    command: kubeadm init --config init.yaml
 
   - name: Create a directory if it does not exist
     ansible.builtin.file:
