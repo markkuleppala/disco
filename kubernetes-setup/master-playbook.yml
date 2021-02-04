@@ -256,14 +256,19 @@
   - name: Initialize the Kubernetes cluster using kubeadm
     command: kubeadm init --config init.yaml
 
+  - name: Set kubectl to be run as non-root
+    ansible.builtin.shell: export KUBECONFIG=/etc/kubernetes/admin.conf
+
   - name: Create a directory if it does not exist
     ansible.builtin.file:
       path: /home/vagrant/.kube
       state: directory
+      owner: vagrant
+      group: vagrant
       mode: '0777'
 
   - name: Setup kubeconfig for vagrant user
-    command: cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+    command: cp -f /etc/kubernetes/admin.conf /home/vagrant/.kube/config
 
   - name: Change file ownership, group and permissions
     ansible.builtin.file:
@@ -272,10 +277,6 @@
       group: vagrant
       mode: '0777'
 
-  - name: Install calico pod network
-    become: false
-    command: kubectl create -f https://docs.projectcalico.org/v3.14/getting-started/kubernetes/installation/hosted/calico.yaml
-
   - name: Generate join command
     command: kubeadm token create --print-join-command
     register: join_command
@@ -283,6 +284,10 @@
   - name: Copy join command to local file
     become: false
     local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+
+  - name: Install calico pod network
+    ansible.builtin.shell: kubectl create -f https://docs.projectcalico.org/v3.14/getting-started/kubernetes/installation/hosted/calico.yaml
+    become: false
 
   handlers:
     - name: docker status
