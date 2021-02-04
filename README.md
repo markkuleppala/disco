@@ -18,7 +18,7 @@ The playbooks setup the nodes with CRI-O as CRI and install Kata Containers to t
 Kata Containers Shim V2 gets unrecognized flag from kubelet/CRI which currently stalls the runtime.
 
 ## References
-https://pkg.go.dev/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta1
-https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/
-https://github.com/cri-o/cri-o/issues/1284
-https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-and-vagrant/
+https://pkg.go.dev/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta1  
+https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/  
+https://github.com/cri-o/cri-o/issues/1284  
+https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-and-vagrant/  
