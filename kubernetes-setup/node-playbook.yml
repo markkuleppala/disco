@@ -30,12 +30,14 @@
       group: vagrant
       state: link
 
+  - name: Adds apt signing key for Kubic
+    apt_key:
+      url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_20.04/Release.key
+      state: present
+
   - name: Add Kubic repository
     command: |
       sh -c "echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
-      wget -nv https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_20.04/Release.key -O Release.key
-      apt-key add - < Release.key
-      apt-get update -qq
 
   - name: Add an apt signing key for Docker
     apt_key:
@@ -65,6 +67,11 @@
       name: docker
       state: present
 
+  - name: Add vagrant user to docker group
+    user:
+      name: vagrant
+      group: docker
+
   - name: Create the systemd docker options configuration file
     template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
 
@@ -85,11 +92,6 @@
       name: docker
       state: started
       enabled: yes
-
-  - name: Add vagrant user to docker group
-    user:
-      name: vagrant
-      group: docker
 
   - name: Remove swapfile from /etc/fstab
     mount:
@@ -126,7 +128,6 @@
         - kubeadm 
         - kubectl
 
-
   - name: Get CRI-O
     git:
       repo: https://github.com/cri-o/cri-o.git
@@ -138,12 +139,44 @@
     ansible.builtin.shell: |
       make BUILDTAGS=""
       make install
-    #  make install.config
     args:
       chdir: cri-o/
-      #MAJOR=`kubectl version --output json | jq ".clientVersion.major | tonumber"`
-      #MINOR=`kubectl version --output json | jq ".clientVersion.minor | tonumber"`
-      #git checkout release-$MAJOR.$MINOR
+
+  - name: Get conmon
+    git:
+      repo: https://github.com/containers/conmon.git
+      dest: $HOME/conmon
+    become: false
+
+  - name: Install conmon dependecies
+    apt: 
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        - libc6-dev
+        - libglib2.0-dev
+        - pkg-config
+        - runc
+
+  - name: Install conmon
+    ansible.builtin.shell: |
+      make
+      make install
+    args:
+      chdir: conmon/
+
+  - name: Install CRI-O config
+    ansible.builtin.shell: make install.config
+    args:
+      chdir: cri-o/
+
+  - name: Get registries conf
+    get_url:
+      url: https://raw.githubusercontent.com/markkuleppala/disco/main/registries.conf
+      dest: /etc/containers/registries.conf
+      mode: '0755'
 
   - name: Install Kata Containers
     command: snap install kata-containers --classic --candidate
@@ -166,6 +199,38 @@
   - name: Start CRI-O service
     command: systemctl start crio
 
+  - name: Get CNI
+    git:
+      repo: https://github.com/containernetworking/plugins
+      dest: $HOME/plugins
+      version: v0.8.7
+    become: false
+
+  - name: Install CNI
+    ansible.builtin.shell: ./build_linux.sh
+    args:
+      chdir: plugins/
+
+  - name: Get CNI conf
+    get_url:
+      url: https://raw.githubusercontent.com/markkuleppala/disco/main/11-crio-ipv4-bridge.conf
+      dest: /etc/cni/net.d/11-crio-ipv4-bridge.conf
+      owner: vagrant
+      group: vagrant
+
+  - name: Create CNI plugin directory
+    ansible.builtin.file:
+      path: /opt/cni/bin
+      owner: vagrant
+      group: vagrant
+
+  - name: Copy CNI plugins
+    ansible.builtin.shell: |
+      cp bin/* /opt/cni/bin/
+      chown -R vagrant:vagrant /opt/cni/bin/
+    args:
+      chdir: plugins/
+
   - name: Configure node ip
     lineinfile:
       path: /etc/default/kubelet
@@ -180,6 +245,12 @@
 
   - name: Copy the join command to server location
     copy: src=join-command dest=/tmp/join-command.sh mode=0777
+
+  - name: Add CRI socket flag to join command
+    replace:
+      path: /tmp/join-command.sh
+      regexp: '6443'
+      replace: "6443 --cri-socket /var/run/crio/crio.sock"
 
   - name: Create a directory if it does not exist
     ansible.builtin.file:
