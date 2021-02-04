@@ -22,3 +22,4 @@ https://pkg.go.dev/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta1
 https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/  
 https://github.com/cri-o/cri-o/issues/1284  
 https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-and-vagrant/  
+https://medium.com/cloudlego/using-cri-o-as-container-runtime-for-kubernetes-b8ddf8326d38  
