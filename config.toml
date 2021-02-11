@@ -1,0 +1,7 @@
+[plugins]
+    [plugins.cri]
+        [plugins.cri.containerd]
+        default_runtime_name = "kata"
+
+        [plugins.cri.containerd.runtimes.kata]
+        runtime_type = "io.containerd.kata.v2"
