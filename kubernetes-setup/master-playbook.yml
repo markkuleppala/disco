@@ -2,6 +2,15 @@
 - hosts: all
   become: true
   tasks:
+  #- name: Add IPs to /etc/hosts on master and workers
+  #  lineinfile:
+  #    dest: /etc/hosts
+  #    regexp: '.*{{ item }}$'
+  #    line: "{{ hostvars[item].ansible_host }} {{item}}"
+  #    state: present
+  #  when: hostvars[item].ansible_host is defined
+  #  with_items: "{{ groups.all }}"
+
   - name: Install packages that allow apt to be used over HTTPS
     apt:
       name: "{{ packages }}"
@@ -16,19 +25,25 @@
       - software-properties-common
       - make
       - gcc
-      - conmon
+      #- conmon
       - jq
+      # QEMU deps
+      - git
+      - libglib2.0-dev
+      - libfdt-dev
+      - libpixman-1-dev
+      - zlib1g-dev
 
   - name: Install go
     command: snap install go --classic
 
-  - name: Create a symbolic link for conmon
-    ansible.builtin.file:
-      src: /usr/libexec/podman/conmon
-      dest: /usr/bin/conmon
-      owner: vagrant
-      group: vagrant
-      state: link
+  #- name: Create a symbolic link for conmon
+  #  ansible.builtin.file:
+  #    src: /usr/libexec/podman/conmon
+  #    dest: /usr/bin/conmon
+  #    owner: vagrant
+  #    group: vagrant
+  #    state: link
 
   - name: Adds apt signing key for Kubic
     apt_key:
@@ -57,10 +72,9 @@
     vars:
       packages:
       - docker-ce-cli=5:19.03.14~3-0~ubuntu-xenial
-      - docker-ce=5:19.03.14~3-0~ubuntu-xenial
+      #- docker-ce=5:19.03.14~3-0~ubuntu-xenial
+      - containerd
       - containers-common
-    notify:
-      - docker status
 
   - name: Ensure group docker exists
     ansible.builtin.group:
@@ -72,26 +86,90 @@
       name: vagrant
       group: docker
 
-  - name: Create the systemd docker options configuration file
-    template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
+  #- name: Get containerd
+  #  get_url:
+  #    url: https://github.com/containerd/containerd/releases/download/v1.3.9/cri-containerd-cni-1.3.9-linux-amd64.tar.gz
+  #    dest: /$HOME/
+  #    mode: '0755'
+  #  become: false
+
+  #- name: Install containerd
+  #  ansible.builtin.shell: tar xzf cri-containerd-cni-1.3.9-linux-amd64.tar.gz -C /
+
+  - name: Get containerd conf
+    get_url:
+      url: https://raw.githubusercontent.com/containerd/containerd/master/containerd.service
+      dest: /etc/systemd/system/containerd.service
+      mode: '0755'
+
+  - name: Create containerd folder /etc/containerd
+    file: path=/etc/containerd state=directory
+
+  #- name: Get containerd conf for Kata Containers
+  #  get_url:
+  #    url: https://raw.githubusercontent.com/markkuleppala/disco/main/config.toml
+  #    dest: /etc/containerd/config.toml
+  #    mode: '0755'
+
+  #- name: Containerd config
+  #  ansible.builtin.shell: containerd config default > /etc/containerd/config.toml
+
+  - name: iptables conf
+    get_url:
+      url: https://raw.githubusercontent.com/markkuleppala/disco/master/k8s.conf
+      dest: /etc/sysctl.d/k8s.conf
+      mode: '0755'
+
+  #- name: Add iptables config
+  #  ansible.builtin.lineinfile:
+  #    path: /etc/sysctl.conf
+  #    line: net.bridge.bridge-nf-call-iptables = 1
+
+  - name: Reload config
+    ansible.builtin.shell: sysctl --system
+
+  - name: IP forward config
+    ansible.builtin.shell: |
+      echo '1' > /proc/sys/net/ipv4/ip_forward
+      iptables -P FORWARD ACCEPT
+      systemctl enable containerd
+      systemctl start containerd
+      systemctl --system
+
+
+  - name: Kernel settings
+    ansible.builtin.shell: |
+      modprobe overlay
+      modprobe br_netfilter
+
+  - name: Hosts file
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      line: 10.0.50.10 k8s-master
+
+  #- name: Create the systemd docker options configuration file
+  #  template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
 
   - name: Systemd reread configs and restart
     ansible.builtin.systemd:
       daemon_reload: yes
 
-  - name: Restart docker
-    service:
-      name: docker
-      daemon_reload: yes
-      state: restarted
+  #- name: Enable docker service
+  #  ansible.builtin.shell: systemctl enable docker
 
-  - meta: flush_handlers
+  #- name: Restart docker
+  #  service:
+  #    name: docker
+  #    daemon_reload: yes
+  #    state: restarted
 
-  - name: Start Docker service
-    service:
-      name: docker
-      state: started
-      enabled: yes
+  #- meta: flush_handlers
+
+  #- name: Start Docker service
+  #  service:
+  #    name: docker
+  #    state: started
+  #    enabled: yes
 
   - name: Remove swapfile from /etc/fstab
     mount:  
@@ -128,56 +206,36 @@
         - kubeadm 
         - kubectl
 
-  - name: Get kubeadm conf
+  - name: kubelet service conf
     get_url:
-      url: https://raw.githubusercontent.com/markkuleppala/disco/main/init.yaml
-      dest: /home/vagrant/init.yaml
-      owner: vagrant
-      group: vagrant
+      url: https://raw.githubusercontent.com/markkuleppala/disco/master/0-containerd.conf
+      dest: /etc/systemd/system/kubelet.service.d/0-containerd.conf
+      mode: '0755'
 
-  - name: Get CRI-O
-    git:
-      repo: https://github.com/cri-o/cri-o.git
-      dest: $HOME/cri-o
-      version: release-1.20
-    become: false
+  #- name: Get conmon
+  #  git:
+  #    repo: https://github.com/containers/conmon.git
+  #    dest: $HOME/conmon
+  #  become: false
 
-  - name: Install CRI-O
-    ansible.builtin.shell: |
-      make BUILDTAGS=""
-      make install
-    args:
-      chdir: cri-o/
+  #- name: Install conmon dependecies
+  #  apt: 
+  #    name: "{{ packages }}"
+  #    state: present
+  #    update_cache: yes
+  #  vars:
+  #    packages:
+  #      - libc6-dev
+  #      - libglib2.0-dev
+  #      - pkg-config
+  #      - runc
 
-  - name: Get conmon
-    git:
-      repo: https://github.com/containers/conmon.git
-      dest: $HOME/conmon
-    become: false
-
-  - name: Install conmon dependecies
-    apt: 
-      name: "{{ packages }}"
-      state: present
-      update_cache: yes
-    vars:
-      packages:
-        - libc6-dev
-        - libglib2.0-dev
-        - pkg-config
-        - runc
-
-  - name: Install conmon
-    ansible.builtin.shell: |
-      make
-      make install
-    args:
-      chdir: conmon/
-
-  - name: Install CRI-O config
-    ansible.builtin.shell: make install.config
-    args:
-      chdir: cri-o/
+  #- name: Install conmon
+  #  ansible.builtin.shell: |
+  #    make
+  #    make install
+  #  args:
+  #    chdir: conmon/
 
   - name: Get registries conf
     get_url:
@@ -185,61 +243,14 @@
       dest: /etc/containers/registries.conf
       mode: '0755'
 
-  - name: Install Kata Containers
-    command: snap install kata-containers --classic --candidate
+  #- name: Install Kata Containers
+  #  command: snap install kata-containers --classic --candidate
 
-  - name: Get CRIO-O conf
-    get_url:
-      url: https://raw.githubusercontent.com/markkuleppala/disco/main/crio.conf
-      dest: /etc/crio/crio.conf
-      mode: '0755'
-
-  - name: Reload CRIO-O conf
-    command: systemctl restart crio
-  
-  - name: Reload daemon
-    command: systemctl daemon-reload
-
-  - name: Restart kubelet
-    command: systemctl restart kubelet
-
-  - name: Enable CRI-O service
-    command: systemctl enable crio
-
-  - name: Start CRI-O service
-    command: systemctl start crio
-
-  - name: Get CNI
-    git:
-      repo: https://github.com/containernetworking/plugins
-      dest: $HOME/plugins
-      version: v0.8.7
-    become: false
-
-  - name: Install CNI
-    ansible.builtin.shell: ./build_linux.sh
-    args:
-      chdir: plugins/
-
-  - name: Get CNI conf
-    get_url:
-      url: https://raw.githubusercontent.com/markkuleppala/disco/main/11-crio-ipv4-bridge.conf
-      dest: /etc/cni/net.d/11-crio-ipv4-bridge.conf
-      owner: vagrant
-      group: vagrant
-
-  - name: Create CNI plugin directory
-    ansible.builtin.file:
-      path: /opt/cni/bin
-      owner: vagrant
-      group: vagrant
-
-  - name: Copy CNI plugins
-    ansible.builtin.shell: |
-      cp bin/* /opt/cni/bin/
-      chown -R vagrant:vagrant /opt/cni/bin/
-    args:
-      chdir: plugins/
+  #- name: Create Kata Containers conf
+  #  ansible.builtin.shell: |
+  #    mkdir -p /etc/kata-containers
+  #    cp /snap/kata-containers/current/usr/share/defaults/kata-containers/configuration.toml /etc/kata-containers/
+  #    ln -sf /snap/kata-containers/current/usr/bin/containerd-shim-kata-v2 /usr/local/bin/containerd-shim-kata-v2
 
   - name: Configure node ip
     lineinfile:
@@ -247,17 +258,17 @@
       line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
       create: yes
 
-  - name: Restart kubelet
-    service:
-      name: kubelet
-      daemon_reload: yes
-      state: restarted
+  - name: Enable services
+    ansible.builtin.shell: |
+      systemctl daemon-reload
+      systemctl enable containerd && systemctl start containerd
+      systemctl enable kubelet && systemctl start kubelet
+
+  - name: Pull images
+    ansible.builtin.shell: kubeadm config images pull
 
   - name: Initialize the Kubernetes cluster using kubeadm
-    command: kubeadm init --config init.yaml
-
-  - name: Set kubectl to be run as non-root
-    ansible.builtin.shell: export KUBECONFIG=/etc/kubernetes/admin.conf
+    ansible.builtin.shell: kubeadm init --pod-network-cidr=10.0.0.0/16 --apiserver-advertise-address=10.0.50.10 --cri-socket=/var/run/containerd/containerd.sock
 
   - name: Create a directory if it does not exist
     ansible.builtin.file:
@@ -268,7 +279,7 @@
       mode: '0777'
 
   - name: Setup kubeconfig for vagrant user
-    command: cp -f /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+    ansible.builtin.shell: cp -f /etc/kubernetes/admin.conf /home/vagrant/.kube/config
 
   - name: Change file ownership, group and permissions
     ansible.builtin.file:
@@ -277,18 +288,25 @@
       group: vagrant
       mode: '0777'
 
-  - name: Generate join command
-    command: kubeadm token create --print-join-command
-    register: join_command
-
-  - name: Copy join command to local file
-    become: false
-    local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
-
-  - name: Install calico pod network
-    ansible.builtin.shell: kubectl create -f https://docs.projectcalico.org/v3.14/getting-started/kubernetes/installation/hosted/calico.yaml
+  - name: Deploy network
+    ansible.builtin.shell: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
     become: false
 
-  handlers:
-    - name: docker status
-      service: name=docker state=started
+  - name: Untaint master
+    ansible.builtin.shell: kubectl taint nodes --all node-role.kubernetes.io/master-
+    become: false
+
+  #- name: Generate join command
+  #  command: kubeadm token create --print-join-command
+  #  register: join_command
+
+  #- name: Copy join command to local file
+  #  become: false
+  #  local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+
+  #- name: Install calico pod network
+  #  ansible.builtin.shell: kubectl create -f https://docs.projectcalico.org/v3.14/getting-started/kubernetes/installation/hosted/calico.yaml
+
+  #- name: Install calico pod network
+  #  ansible.builtin.shell: kubectl create -f https://docs.projectcalico.org/v3.14/getting-started/kubernetes/installation/hosted/calico.yaml
+  #  become: false

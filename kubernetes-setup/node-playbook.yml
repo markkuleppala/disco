@@ -2,6 +2,15 @@
 - hosts: all
   become: true
   tasks:
+  #- name: Add IPs to /etc/hosts on master and workers
+  #  lineinfile:
+  #    dest: /etc/hosts
+  #    regexp: '.*{{ item }}$'
+  #    line: "{{ hostvars[item].ansible_host }} {{item}}"
+  #    state: present
+  #  when: hostvars[item].ansible_host is defined
+  #  with_items: "{{ groups.all }}"
+
   - name: Install packages that allow apt to be used over HTTPS
     apt:
       name: "{{ packages }}"
@@ -58,6 +67,7 @@
       packages:
       - docker-ce-cli=5:19.03.14~3-0~ubuntu-xenial
       - docker-ce=5:19.03.14~3-0~ubuntu-xenial
+      - containerd.io
       - containers-common
     notify:
       - docker status
@@ -72,8 +82,8 @@
       name: vagrant
       group: docker
 
-  - name: Create the systemd docker options configuration file
-    template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
+  #- name: Create the systemd docker options configuration file
+  #  template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service
 
   - name: Systemd reread configs and restart
     ansible.builtin.systemd:
@@ -128,49 +138,49 @@
         - kubeadm 
         - kubectl
 
-  - name: Get CRI-O
-    git:
-      repo: https://github.com/cri-o/cri-o.git
-      dest: $HOME/cri-o
-      version: release-1.20
-    become: false
+  #- name: Get CRI-O
+  #  git:
+  #    repo: https://github.com/cri-o/cri-o.git
+  #    dest: $HOME/cri-o
+  #    version: release-1.20
+  # become: false
 
-  - name: Install CRI-O
-    ansible.builtin.shell: |
-      make BUILDTAGS=""
-      make install
-    args:
-      chdir: cri-o/
+  #- name: Install CRI-O
+  #  ansible.builtin.shell: |
+  #    make BUILDTAGS=""
+  #    make install
+  #  args:
+  #    chdir: cri-o/
 
-  - name: Get conmon
-    git:
-      repo: https://github.com/containers/conmon.git
-      dest: $HOME/conmon
-    become: false
+  #- name: Get conmon
+  #  git:
+  #    repo: https://github.com/containers/conmon.git
+  #    dest: $HOME/conmon
+  #  become: false
 
-  - name: Install conmon dependecies
-    apt: 
-      name: "{{ packages }}"
-      state: present
-      update_cache: yes
-    vars:
-      packages:
-        - libc6-dev
-        - libglib2.0-dev
-        - pkg-config
-        - runc
+  #- name: Install conmon dependecies
+  #  apt: 
+  #    name: "{{ packages }}"
+  #    state: present
+  #    update_cache: yes
+  #  vars:
+  #    packages:
+  #      - libc6-dev
+  #      - libglib2.0-dev
+  #      - pkg-config
+  #      - runc
 
-  - name: Install conmon
-    ansible.builtin.shell: |
-      make
-      make install
-    args:
-      chdir: conmon/
+  #- name: Install conmon
+  #  ansible.builtin.shell: |
+  #    make
+  #    make install
+  #  args:
+  #    chdir: conmon/
 
-  - name: Install CRI-O config
-    ansible.builtin.shell: make install.config
-    args:
-      chdir: cri-o/
+  #- name: Install CRI-O config
+  #  ansible.builtin.shell: make install.config
+  #  args:
+  #    chdir: cri-o/
 
   - name: Get registries conf
     get_url:
@@ -178,58 +188,58 @@
       dest: /etc/containers/registries.conf
       mode: '0755'
 
-  - name: Install Kata Containers
-    command: snap install kata-containers --classic --candidate
+  #- name: Install Kata Containers
+  #  command: snap install kata-containers --classic --candidate
 
-  - name: Get CRIO-O conf
-    get_url:
-      url: https://raw.githubusercontent.com/markkuleppala/disco/main/crio.conf
-      dest: /etc/crio/crio.conf
-      mode: '0755'
+  #- name: Get CRIO-O conf
+  #  get_url:
+  #    url: https://raw.githubusercontent.com/markkuleppala/disco/main/crio.conf
+  #    dest: /etc/crio/crio.conf
+  #    mode: '0755'
 
-  - name: Reload CRIO-O conf
-    command: systemctl restart crio
+  #- name: Reload CRIO-O conf
+  #  command: systemctl restart crio
   
-  - name: Reload daemon
-    command: systemctl daemon-reload
+  #- name: Reload daemon
+  #  command: systemctl daemon-reload
 
-  - name: Enable CRI-O service
-    command: systemctl enable crio
+  #- name: Enable CRI-O service
+  #  command: systemctl enable crio
 
-  - name: Start CRI-O service
-    command: systemctl start crio
+  #- name: Start CRI-O service
+  #  command: systemctl start crio
 
-  - name: Get CNI
-    git:
-      repo: https://github.com/containernetworking/plugins
-      dest: $HOME/plugins
-      version: v0.8.7
-    become: false
+  #- name: Get CNI
+  #  git:
+  #    repo: https://github.com/containernetworking/plugins
+  #    dest: $HOME/plugins
+  #    version: v0.8.7
+  #  become: false
 
-  - name: Install CNI
-    ansible.builtin.shell: ./build_linux.sh
-    args:
-      chdir: plugins/
+  #- name: Install CNI
+  #  ansible.builtin.shell: ./build_linux.sh
+  #  args:
+   #   chdir: plugins/
 
-  - name: Get CNI conf
-    get_url:
-      url: https://raw.githubusercontent.com/markkuleppala/disco/main/11-crio-ipv4-bridge.conf
-      dest: /etc/cni/net.d/11-crio-ipv4-bridge.conf
-      owner: vagrant
-      group: vagrant
+  #- name: Get CNI conf
+  #  get_url:
+  #    url: https://raw.githubusercontent.com/markkuleppala/disco/main/11-crio-ipv4-bridge.conf
+  #    dest: /etc/cni/net.d/11-crio-ipv4-bridge.conf
+  #    owner: vagrant
+  #    group: vagrant
 
-  - name: Create CNI plugin directory
-    ansible.builtin.file:
-      path: /opt/cni/bin
-      owner: vagrant
-      group: vagrant
+  #- name: Create CNI plugin directory
+  #  ansible.builtin.file:
+  #    path: /opt/cni/bin
+  #    owner: vagrant
+  #    group: vagrant
 
-  - name: Copy CNI plugins
-    ansible.builtin.shell: |
-      cp bin/* /opt/cni/bin/
-      chown -R vagrant:vagrant /opt/cni/bin/
-    args:
-      chdir: plugins/
+  #- name: Copy CNI plugins
+  #  ansible.builtin.shell: |
+  #    cp bin/* /opt/cni/bin/
+  #    chown -R vagrant:vagrant /opt/cni/bin/
+  #  args:
+  #    chdir: plugins/
 
   - name: Configure node ip
     lineinfile:
@@ -246,11 +256,11 @@
   - name: Copy the join command to server location
     copy: src=join-command dest=/tmp/join-command.sh mode=0777
 
-  - name: Add CRI socket flag to join command
-    replace:
-      path: /tmp/join-command.sh
-      regexp: '6443'
-      replace: "6443 --cri-socket /var/run/crio/crio.sock"
+  #- name: Add CRI socket flag to join command
+  #  replace:
+  #    path: /tmp/join-command.sh
+  #    regexp: '6443'
+  #    replace: "6443 --cri-socket /var/run/crio/crio.sock"
 
   - name: Create a directory if it does not exist
     ansible.builtin.file:
