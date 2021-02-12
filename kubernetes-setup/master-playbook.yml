@@ -166,14 +166,14 @@
       dest: /etc/containers/registries.conf
       mode: '0755'
 
-  #- name: Install Kata Containers
-  #  command: snap install kata-containers --classic --candidate
+  - name: Install Kata Containers
+    command: snap install kata-containers --classic --candidate
 
-  #- name: Create Kata Containers conf
-  #  ansible.builtin.shell: |
-  #    mkdir -p /etc/kata-containers
-  #    cp /snap/kata-containers/current/usr/share/defaults/kata-containers/configuration.toml /etc/kata-containers/
-  #    ln -sf /snap/kata-containers/current/usr/bin/containerd-shim-kata-v2 /usr/local/bin/containerd-shim-kata-v2
+  - name: Create Kata Containers conf
+    ansible.builtin.shell: |
+      mkdir -p /etc/kata-containers
+      cp /snap/kata-containers/current/usr/share/defaults/kata-containers/configuration.toml /etc/kata-containers/
+      ln -sf /snap/kata-containers/current/usr/bin/containerd-shim-kata-v2 /usr/local/bin/containerd-shim-kata-v2
 
   - name: Configure node ip
     lineinfile:
