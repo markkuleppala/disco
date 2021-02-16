@@ -17,7 +17,7 @@ oom_score = 0
   max_send_message_size = 16777216
 
 [ttrpc]
-  address = ""
+  address = "/run/containerd/containerd.sock.ttrpc"
   uid = 0
   gid = 0
 
