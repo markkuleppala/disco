@@ -507,7 +507,7 @@ handle_containerd()
 
 	install_containerd "$version"
 
-	configure_containerd
+	#configure_containerd
 
 	containerd --version
 }
