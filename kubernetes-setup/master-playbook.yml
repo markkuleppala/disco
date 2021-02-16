@@ -3,6 +3,17 @@
   become: true
   tasks:
 
+  - name: Get and unarchive containerd
+    ansible.builtin.shell: |
+      wget https://github.com/containerd/containerd/releases/download/v1.4.3/containerd-1.4.3-linux-amd64.tar.gz
+      tar zxf containerd-1.4.3-linux-amd64.tar.gz
+    become: false
+
+  - name: Move binary
+    ansible.builtin.shell: |
+      chown -R vagrant:vagrant /home/vagrant/bin/
+      mv /home/vagrant/bin/* /usr/local/bin/
+
   - name: Install Kata Containers
     ansible.builtin.unarchive:
       src: https://github.com/kata-containers/kata-containers/releases/download/2.0.1/kata-static-2.0.1-x86_64.tar.xz
@@ -87,7 +98,7 @@
     vars:
       packages:
       - docker-ce-cli=5:19.03.14~3-0~ubuntu-xenial
-      - containerd
+      #- containerd
       - runc
       - containers-common
 
