@@ -94,6 +94,8 @@ oom_score = 0
           privileged_without_host_devices = false
           base_runtime_spec = ""
           [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata]
+          runtime_type = "io.containerd.kata.v2"
     [plugins."io.containerd.grpc.v1.cri".cni]
       bin_dir = "/opt/cni/bin"
       conf_dir = "/etc/cni/net.d"
@@ -131,7 +133,3 @@ oom_score = 0
     pool_name = ""
     base_image_size = ""
     async_remove = false
-    
-  [plugins."io.containerd.grpc.v1.cri"]
-      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata]
-        runtime_type = "io.containerd.kata.v2"
