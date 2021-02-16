@@ -5,8 +5,8 @@ Vagrant.configure("2") do |config|
 
     config.vm.provider "virtualbox" do |v|
         v.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
-        v.memory = 4000
-        v.cpus = 4
+        v.memory = 6000
+        v.cpus = 6
     end
       
     config.vm.define "k8s-master" do |master|

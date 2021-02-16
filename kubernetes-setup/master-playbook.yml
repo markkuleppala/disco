@@ -3,6 +3,20 @@
   become: true
   tasks:
 
+  - name: Install Kata Containers
+    ansible.builtin.unarchive:
+      src: https://github.com/kata-containers/kata-containers/releases/download/2.0.1/kata-static-2.0.1-x86_64.tar.xz
+      dest: /
+      remote_src: yes
+
+  - name: Create links
+    ansible.builtin.shell: |
+      ln -sf /opt/kata/bin/containerd-shim-kata-v2 /usr/local/bin/containerd-shim-kata-v2
+      ln -sf /opt/kata/bin/kata-runtime /usr/local/bin/kata-runtime
+
+  - name: Kata check
+    ansible.builtin.shell: kata-runtime kata-check
+
   - name: Install packages that allow apt to be used over HTTPS
     apt:
       name: "{{ packages }}"
@@ -20,10 +34,11 @@
       - jq
       # QEMU deps
       - git
-      - libglib2.0-dev
-      - libfdt-dev
-      - libpixman-1-dev
-      - zlib1g-dev
+      - tar
+      #- libglib2.0-dev
+      #- libfdt-dev
+      #- libpixman-1-dev
+      #- zlib1g-dev
 
   - name: Install go
     command: snap install go --classic
@@ -76,6 +91,17 @@
       - runc
       - containers-common
 
+  - name: Ensure group docker exists
+    ansible.builtin.group:
+      name: docker
+      state: present
+
+  - name: Add vagrant user to docker group
+    user:
+      name: vagrant
+      group: docker
+
+
   - name: Create containerd folder /etc/containerd
     file: path=/etc/containerd state=directory
 
@@ -84,6 +110,15 @@
       url: https://raw.githubusercontent.com/markkuleppala/disco/main/config.toml
       dest: /etc/containerd/config.toml
       mode: '0755'
+
+  - name: Get containerd conf
+    get_url:
+      url: https://raw.githubusercontent.com/containerd/containerd/master/containerd.service
+      dest: /etc/systemd/system/containerd.service
+      mode: '0755'
+
+  - name: Reload config
+    ansible.builtin.shell: sysctl --system
 
   #- name: Hold Docker updates
   #  ansible.builtin.shell: apt-mark hold docker-ce-cli
@@ -95,25 +130,6 @@
   #- name: Install kernel headers
   #  apt:
   #    name: linux-headers-5.4.0-65-generic
-
-  - name: Ensure group docker exists
-    ansible.builtin.group:
-      name: docker
-      state: present
-
-  - name: Add vagrant user to docker group
-    user:
-      name: vagrant
-      group: docker
-
-  - name: Get containerd conf
-    get_url:
-      url: https://raw.githubusercontent.com/containerd/containerd/master/containerd.service
-      dest: /etc/systemd/system/containerd.service
-      mode: '0755'
-
-  - name: Reload config
-    ansible.builtin.shell: sysctl --system
 
   - name: IP forward config
     ansible.builtin.shell: |
@@ -182,15 +198,15 @@
       dest: /etc/containers/registries.conf
       mode: '0755'
 
-  - name: Install Kata Containers
-    command: snap install kata-containers --classic --candidate
+  #- name: Install Kata Containers
+  #  command: snap install kata-containers --classic --candidate
 
-  - name: Create Kata Containers conf
-    ansible.builtin.shell: |
-      mkdir -p /etc/kata-containers
-      cp /snap/kata-containers/current/usr/share/defaults/kata-containers/configuration.toml /etc/kata-containers/
-      ln -sf /snap/kata-containers/current/usr/bin/containerd-shim-kata-v2 /usr/local/bin/containerd-shim-kata-v2
-      ln -sf /snap/kata-containers/current/usr/bin/kata-runtime /usr/local/bin/kata-runtime
+  #- name: Create Kata Containers conf
+  #  ansible.builtin.shell: |
+  #    mkdir -p /etc/kata-containers
+  #    cp /snap/kata-containers/current/usr/share/defaults/kata-containers/configuration.toml /etc/kata-containers/
+  #    ln -sf /snap/kata-containers/current/usr/bin/containerd-shim-kata-v2 /usr/local/bin/containerd-shim-kata-v2
+  #    ln -sf /snap/kata-containers/current/usr/bin/kata-runtime /usr/local/bin/kata-runtime
 
   - name: Configure node ip
     lineinfile:
@@ -235,6 +251,3 @@
   - name: Untaint master
     ansible.builtin.shell: kubectl taint nodes --all node-role.kubernetes.io/master-
     become: false
-
-  - name: Kata check
-    ansible.builtin.shell: kata-runtime kata-check
