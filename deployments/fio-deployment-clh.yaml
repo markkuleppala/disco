@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fio-deployment-clh
+spec:
+  selector:
+    matchLabels:
+      app: fio
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fio
+    spec:
+      runtimeClassName: kata-clh
+      containers:
+      - name: fio
+        image: mauke53/fio:latest
+        ports:
+        - containerPort: 80
