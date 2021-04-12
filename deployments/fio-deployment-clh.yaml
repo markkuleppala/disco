@@ -21,9 +21,6 @@ spec:
         volumeMounts:
         - mountPath: /emptydir
           name: emptydir-volume
-        resources:
-          requests:
-            memory: "8Gi"
       volumes:
         - name: emptydir-volume
           emptyDir:
