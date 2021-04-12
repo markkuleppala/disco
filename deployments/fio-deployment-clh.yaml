@@ -19,10 +19,10 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-        - mountPath: /cache
-          name: cache-volume
+        - mountPath: /emptydir
+          name: emptydir-volume
       volumes:
-        - name: cache-volume
+        - name: emptydir-volume
           emptyDir:
             medium: Memory
             sizeLimit: "8Gi"
