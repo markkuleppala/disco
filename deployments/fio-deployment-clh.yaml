@@ -18,3 +18,11 @@ spec:
         image: mauke53/fio:latest
         ports:
         - containerPort: 80
+        volumeMounts:
+        - mountPath: /cache
+          name: cache-volume
+      volumes:
+        - name: cache-volume
+          emptyDir:
+            medium: Memory
+            sizeLimit: "1Gi"
