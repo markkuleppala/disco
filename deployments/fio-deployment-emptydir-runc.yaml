@@ -17,11 +17,11 @@ spec:
         image: mauke53/fio:latest
         ports:
         - containerPort: 80
-        volumeMounts:
-        - mountPath: /emptydir
-          name: emptydir-volume
-      volumes:
-        - name: emptydir-volume
-          emptyDir:
-            medium: Memory
-            sizeLimit: "4Gi"
+#        volumeMounts:
+#        - mountPath: /emptydir
+#          name: emptydir-volume
+#      volumes:
+#        - name: emptydir-volume
+#          emptyDir:
+#            medium: Memory
+#            sizeLimit: "4Gi"
