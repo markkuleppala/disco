@@ -12,7 +12,7 @@ spec:
       labels:
         app: fio
     spec:
-      runtimeClassName: runc
+      #runtimeClassName: runc
       containers:
       - name: fio
         image: mauke53/fio:latest
