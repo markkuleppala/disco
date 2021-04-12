@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fio-deployment-fc
+spec:
+  selector:
+    matchLabels:
+      app: fio
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fio
+    spec:
+      runtimeClassName: kata-fc
+      containers:
+      - name: fio
+        image: mauke53/fio:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /emptydir
+          name: emptydir-volume
+      volumes:
+        - name: emptydir-volume
+          emptyDir:
+            medium: Memory
+            sizeLimit: "4Gi"
