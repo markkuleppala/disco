@@ -25,4 +25,4 @@ spec:
         - name: cache-volume
           emptyDir:
             medium: Memory
-   #         sizeLimit: "4Gi"
+            sizeLimit: "8Gi"
