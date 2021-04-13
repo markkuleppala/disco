@@ -20,6 +20,8 @@ spec:
         volumeMounts:
         - mountPath: /emptydir
           name: emptydir-volume
+          command: [ "/bin/sh", "-c", "--" ]
+          args: [ "while true; do sleep 30; done;" ]
       volumes:
         - name: emptydir-volume
           emptyDir:
