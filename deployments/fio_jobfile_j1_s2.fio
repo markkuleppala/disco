@@ -22,8 +22,8 @@ thread=0
 numjobs=1
 group_reporting=1
 ; Each file for each job thread is this size
-filesize=1g
-size=1g
+filesize=2g
+size=2g
 filename_format=$jobnum.dat
 
 [fio-job]
