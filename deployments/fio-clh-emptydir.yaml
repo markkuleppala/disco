@@ -5,12 +5,12 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: fio-clh-emptydir
+      app: fio
   replicas: 1
   template:
     metadata:
       labels:
-        app: fio
+        app: fio-clh-emptydir
     spec:
       runtimeClassName: kata-clh
       containers:
