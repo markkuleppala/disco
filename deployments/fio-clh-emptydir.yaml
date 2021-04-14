@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fio-clh-emptydir
+  name: fio-clh-emptydir-memory
 spec:
   selector:
     matchLabels:
-      app: fio-clh-emptydir
+      app: fio-clh-emptydir-memory
   replicas: 1
   template:
     metadata:
       labels:
-        app: fio-clh-emptydir
+        app: fio-clh-emptydir-memory
     spec:
       runtimeClassName: kata-clh
       containers:
