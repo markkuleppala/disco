@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fio-deployment-clh
+  name: fio-clh-emptydir
 spec:
   selector:
     matchLabels:
