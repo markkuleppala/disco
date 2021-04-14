@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fio-deployment-runc
+  name: fio-runc-emptydir
 spec:
   selector:
     matchLabels:
-      app: fio
+      app: fio-runc-emptydir
   replicas: 1
   template:
     metadata:
