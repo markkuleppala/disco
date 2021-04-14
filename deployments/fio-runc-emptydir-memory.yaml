@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fio-runc-emptydir
+  name: fio-runc-emptydir-memory
 spec:
   selector:
     matchLabels:
-      app: fio-runc-emptydir
+      app: fio-runc-emptydir-memory
   replicas: 1
   template:
     metadata:
       labels:
-        app: fio-runc-emptydir
+        app: fio-runc-emptydir-memory
     spec:
       containers:
       - name: fio
         image: mauke53/fio:latest
-        command: [ "/bin/sh", "-c", "--" ]
-        args: [ "while true; do sleep 30; done;" ]
+        #command: [ "/bin/sh", "-c", "--" ]
+        #args: [ "while true; do sleep 30; done;" ]
         ports:
         - containerPort: 80
         volumeMounts:
