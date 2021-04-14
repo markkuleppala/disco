@@ -5,12 +5,12 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: fio-qemu-emptydir
+      app: fio
   replicas: 1
   template:
     metadata:
       labels:
-        app: fio
+        app: fio-qemu-emptydir
     spec:
       runtimeClassName: kata-qemu
       containers:
