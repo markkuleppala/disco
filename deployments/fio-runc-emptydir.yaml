@@ -5,12 +5,12 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: fio-runc-emptydir
+      app: fio
   replicas: 1
   template:
     metadata:
       labels:
-        app: fio
+        app: fio-runc-emptydir
     spec:
       containers:
       - name: fio
