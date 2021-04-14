@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fio-deployment-fc
+  name: fio-fc-emptydir
 spec:
   selector:
     matchLabels:
-      app: fio
+      app: fio-fc-emptydir
   replicas: 1
   template:
     metadata:
