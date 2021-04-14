@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fio-clh-emptydir
+spec:
+  selector:
+    matchLabels:
+      app: fio-clh-emptydir
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fio-clh-emptydir
+    spec:
+      runtimeClassName: kata-clh
+      containers:
+      - name: fio
+        image: mauke53/fio:latest
+        command: [ "/bin/sh", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /emptydir
+          name: emptydir-volume
+      volumes:
+        - name: emptydir-volume
+          emptyDir: {}
