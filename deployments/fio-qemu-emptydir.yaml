@@ -14,7 +14,7 @@ spec:
     spec:
       runtimeClassName: kata-qemu
       containers:
-      - name: fio-qemu-emptydir
+      - name: fio
         image: mauke53/fio:latest
         command: [ "/bin/sh", "-c", "--" ]
         args: [ "while true; do sleep 30; done;" ]
