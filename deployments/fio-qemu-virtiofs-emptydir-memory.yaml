@@ -1,23 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fio-qemu-virtiofs-emptydir
+  name: fio-qemu-virtiofs-emptydir-memory
 spec:
   selector:
     matchLabels:
-      app: fio-qemu-virtiofs-emptydir
+      app: fio-qemu-virtiofs-emptydir-memory
   replicas: 1
   template:
     metadata:
       labels:
-        app: fio-qemu-virtiofs-emptydir
+        app: fio-qemu-virtiofs-emptydir-memory
     spec:
       runtimeClassName: kata-qemu-virtiofs
       containers:
       - name: fio
         image: mauke53/fio:latest
-        command: [ "/bin/sh", "-c", "--" ]
-        args: [ "while true; do sleep 30; done;" ]
         ports:
         - containerPort: 80
         volumeMounts:
@@ -27,4 +25,4 @@ spec:
         - name: emptydir-volume
           emptyDir:
             medium: Memory
-            sizeLimit: "4Gi"
+            sizeLimit: "8Gi"
