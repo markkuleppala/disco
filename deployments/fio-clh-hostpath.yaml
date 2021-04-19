@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fio-clh-hostpath
+spec:
+  selector:
+    matchLabels:
+      app: fio-clh-hostpath
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fio-clh-hostpath
+    spec:
+      runtimeClassName: kata-clh
+      containers:
+      - name: fio
+        image: mauke53/fio:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /test-volume
+          name: test-volume
+      volumes:
+        - name: test-volume
+          hostPath:
+            path: /test-volume
+            type: FileOrCreate
