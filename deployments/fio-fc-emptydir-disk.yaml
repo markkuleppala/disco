@@ -1,0 +1,27 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fio-fc-emptydir-disk
+spec:
+  selector:
+    matchLabels:
+      app: fio-fc-emptydir-disk
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fio-fc-emptydir-disk
+    spec:
+      runtimeClassName: kata-fc
+      containers:
+      - name: fio
+        image: mauke53/fio:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /emptydir
+          name: emptydir-volume
+      volumes:
+        - name: emptydir-volume
+          emptyDir: {}
