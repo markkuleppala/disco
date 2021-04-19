@@ -19,7 +19,7 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-        - mountPath: /emptydir
+        - mountPath: /test-volume
           name: emptydir-volume
       volumes:
         - name: emptydir-volume
