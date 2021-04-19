@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fio-fc-emptydir
+  name: fio-fc-emptydir-memory
 spec:
   selector:
     matchLabels:
-      app: fio-fc-emptydir
+      app: fio-fc-emptydir-memory
   replicas: 1
   template:
     metadata:
       labels:
-        app: fio-fc-emptydir
+        app: fio-fc-emptydir-memory
     spec:
       runtimeClassName: kata-fc
       containers:
