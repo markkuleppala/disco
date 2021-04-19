@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fio-runc-emptydir-disk
+spec:
+  selector:
+    matchLabels:
+      app: fio-runc-emptydir-disk
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fio-runc-emptydir-disk
+    spec:
+      containers:
+      - name: fio
+        image: mauke53/fio:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /emptydir
+          name: emptydir-volume
+      volumes:
+        - name: emptydir-volume
+          emptyDir: {}
