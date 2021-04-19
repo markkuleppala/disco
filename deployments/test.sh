@@ -16,7 +16,7 @@ do
             do
                 RUNTIME=30 FILESIZE=2G SIZE=2G NUM_JOBS=$NUM_JOBS FIO_RW=$FIO_RW \
                     fio fio_jobfile.fio \
-                    --directory=/emptydir \
+                    --directory=/test-volume \
                     --output-format=json+ \
                     --blocksize=$BS \
                     --output=BS$BS-J$NUM_JOBS-$FIO_RW-$i.json
