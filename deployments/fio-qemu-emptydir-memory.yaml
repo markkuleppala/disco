@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fio-qemu-emptydir
+  name: fio-qemu-emptydir-memory
 spec:
   selector:
     matchLabels:
-      app: fio-qemu-emptydir
+      app: fio-qemu-emptydir-memory
   replicas: 1
   template:
     metadata:
       labels:
-        app: fio-qemu-emptydir
+        app: fio-qemu-emptydir-memory
     spec:
       runtimeClassName: kata-qemu
       containers:
