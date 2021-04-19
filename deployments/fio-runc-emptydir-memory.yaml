@@ -15,8 +15,6 @@ spec:
       containers:
       - name: fio
         image: mauke53/fio:latest
-        #command: [ "/bin/sh", "-c", "--" ]
-        #args: [ "while true; do sleep 30; done;" ]
         ports:
         - containerPort: 80
         volumeMounts:
@@ -26,4 +24,4 @@ spec:
         - name: emptydir-volume
           emptyDir:
             medium: Memory
-            sizeLimit: "4Gi"
+            sizeLimit: "8Gi"
