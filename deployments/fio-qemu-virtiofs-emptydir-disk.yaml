@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fio-qemu-virtiofs-emptydir-disk
+spec:
+  selector:
+    matchLabels:
+      app: fio-qemu-virtiofs-emptydir-disk
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fio-qemu-virtiofs-emptydir-disk
+    spec:
+      runtimeClassName: kata-qemu-virtiofs
+      containers:
+      - name: fio
+        image: mauke53/fio:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /emptydir
+          name: emptydir-volume
+      volumes:
+        - name: emptydir-volume
+          emptyDir: {}
