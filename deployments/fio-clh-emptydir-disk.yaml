@@ -16,6 +16,11 @@ spec:
       containers:
       - name: fio
         image: mauke53/fio:latest
+        resources:
+          requests:
+            cpu: "1"
+          limits:
+            cpu: "1"
         ports:
         - containerPort: 80
         volumeMounts:
