@@ -20,8 +20,8 @@ spec:
         - containerPort: 80
         volumeMounts:
         - mountPath: /test-volume
-          name: test-volume
+          name: pv-local
       volumes:
-      - name: test-volume
+      - name: pv-local
         persistentVolumeClaim:
-          claimName: test-volume
+          claimName: pvc-local
