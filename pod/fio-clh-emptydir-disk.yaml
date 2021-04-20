@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Pod
+metadata:
+  name: fio-clh-emptydir-disk
+  namespace: io-test
+spec:
+  runtimeClassName: kata-clh
+  containers:
+  - name: fio
+    image: mauke53/fio:latest
+    resources:
+      requests:
+        cpu: "1"
+      limits:
+        cpu: "1"
+    volumeMounts:
+    - mountPath: /test-volume
+      name: emptydir-volume
+  volumes:
+    - name: emptydir-volume
+      emptyDir: {}
