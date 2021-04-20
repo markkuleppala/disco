@@ -20,11 +20,11 @@ do
                     --output-format=json+ \
                     --blocksize=$BS \
                     --output=BS$BS-J$NUM_JOBS-$FIO_RW-$i.json
-                rm -rf emptydir/*.dat
+                rm -rf test-volume/*.dat
             done
         done
     done
 done
 
 mkdir Results
-mv *.json Results/
+mv BS*.json Results/
