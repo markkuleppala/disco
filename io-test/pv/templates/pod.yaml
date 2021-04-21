@@ -1,24 +1,22 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ .Values.runtimeClassName }}-{{ .Values.volumeMounts.name }}"
-  labels:
-    app.kubernetes.io/name: {{ include "io-test.name" . }}
-    helm.sh/chart: {{ include "io-test.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  name: "fio-{{ .Values.rtc }}-pv"
+  namespace: io-test
 spec:
+  runtimeClassName: "kata-{{ .Values.rtc }}"
   containers:
-    - name: {{ .Chart.Name }}
-      image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-      resources:
-        requests:
-          cpu: "{{ .Values.resources.requests.cpu }}"
-        limits:
-          cpu: "{{ .Values.resources.limits.cpu }}"
-      volumeMounts:
-      - mountPath: /test-volume
-        name: "{{ .Values.volumeMounts.name }}"
+  - name: fio
+    image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+    resources:
+      requests:
+        cpu: "{{ .Values.resources.requests.cpu }}"
+      limits:
+        cpu: "{{ .Values.resources.limits.cpu }}"
+    volumeMounts:
+    - mountPath: /test-volume
+      name: pv-local
   volumes:
-  - name: "{{ .Values.volumes.name }}"
-    {{ .Values.volumes.spec }}
+  - name: pv-local
+    persistentVolumeClaim:
+      claimName: pvc-local
