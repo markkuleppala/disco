@@ -6,16 +6,19 @@ metadata:
 spec:
   runtimeClassName: "kata-{{ .Values.rtc }}"
   containers:
-    - name: fio
-      image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-      resources:
-        requests:
-          cpu: "{{ .Values.resources.requests.cpu }}"
-        limits:
-          cpu: "{{ .Values.resources.limits.cpu }}"
-      volumeMounts:
-      - mountPath: /test-volume
-        name: emptydir-volume
+  - command:
+    - kube-apiserver
+    - --feature-gates=PodOverhead=false
+  - name: fio
+    image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+    resources:
+      requests:
+        cpu: "{{ .Values.resources.requests.cpu }}"
+      limits:
+        cpu: "{{ .Values.resources.limits.cpu }}"
+    volumeMounts:
+    - mountPath: /test-volume
+      name: emptydir-volume
   volumes:
   - name: emptydir-volume
     emptyDir: {}
