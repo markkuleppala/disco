@@ -18,14 +18,17 @@ spec:
         image: mauke53/fio:latest
         resources:
           requests:
-            cpu: "1"
+            cpu: "2"
           limits:
-            cpu: "1"
-        ports:
-        - containerPort: 80
+            cpu: "2"
         volumeMounts:
         - mountPath: /test-volume
           name: emptydir-volume
+        - mountPath: /results
+          name: result-volume
       volumes:
         - name: emptydir-volume
           emptyDir: {}
+        - name: result-volume
+          hostPath:
+            path: /results
